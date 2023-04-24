@@ -19,7 +19,6 @@ class ErrorLogger {
     });
     console.log("==================== End Error Logger ===============");
     // log error with Logger plugins
-
     return false;
   }
 
