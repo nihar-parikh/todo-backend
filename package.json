@@ -1,0 +1,30 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "NODE_ENV=dev nodemon src/index.js",
+    "start": "nodemon src/index.js",
+    "test": "mocha --timeout 60000"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "mongoose": "^7.0.4",
+    "validator": "^13.9.0",
+    "winston": "^3.8.2"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "chai-http": "^4.3.0",
+    "mocha": "^10.2.0",
+    "nodemon": "^2.0.22",
+    "supertest": "^6.3.3"
+  }
+}
