@@ -1,5 +1,5 @@
 import { ToDoService } from "../services/todo-service.js";
-import { TITLE } from "../database/models/todo.js";
+import { TITLE, ToDoModel } from "../database/models/todo.js";
 import { validationResult } from "express-validator";
 import {
   createToDoValidations,
@@ -9,41 +9,43 @@ import {
   updateToDoValidations,
 } from "../utils/validation-errors.js";
 import { BASE_URL } from "../utils/index.js";
+import { asyncErrorHandler } from "../utils/asyncErrorHandler.js";
+import { CustomError } from "../utils/CustomError.js";
 
 const todos = (app) => {
   const toDoService = new ToDoService();
 
-  //------------------Create ToDo Api-----------------//
-  app.post(
-    `${BASE_URL}/create`,
-    [...createToDoValidations],
-    async (req, res, next) => {
-      try {
-        const { [TITLE]: title } = req.body;
+  // //------------------Create ToDo Api-----------------//
+  // app.post(
+  //   `${BASE_URL}/create`,
+  //   [...createToDoValidations],
+  //   async (req, res, next) => {
+  //     try {
+  //       const { [TITLE]: title } = req.body;
 
-        // validationResult function checks whether
-        // any occurs or not and return an object
-        const errors = validationResult(req);
+  //       // validationResult function checks whether
+  //       // any occurs or not and return an object
+  //       const errors = validationResult(req);
 
-        // If some error occurs, then this
-        // block of code will run
-        if (!errors.isEmpty()) {
-          return res.json(errors);
-        }
+  //       // If some error occurs, then this
+  //       // block of code will run
+  //       if (!errors.isEmpty()) {
+  //         return res.json(errors);
+  //       }
 
-        //--------------Calling createToDo method------------//
-        const { data } = await toDoService.createToDo({
-          title,
-        });
-        return res.json({
-          data,
-          message: data.error ? "To Do already exist." : "To Do created.",
-        });
-      } catch (err) {
-        next(err);
-      }
-    }
-  );
+  //       //--------------Calling createToDo method------------//
+  //       const { data } = await toDoService.createToDo({
+  //         title,
+  //       });
+  //       return res.json({
+  //         data,
+  //         message: data.error ? "To Do already exist." : "To Do created.",
+  //       });
+  //     } catch (err) {
+  //       next(err);
+  //     }
+  //   }
+  // );
 
   //------------------Get all ToDos Api-----------------//
   app.get(`${BASE_URL}/all`, async (req, res, next) => {
@@ -56,31 +58,31 @@ const todos = (app) => {
     }
   });
 
-  //------------------Get ToDo by ID Api-----------------//
-  app.post(
-    `${BASE_URL}`,
-    [...getToDoByIDValidations],
-    async (req, res, next) => {
-      try {
-        const { id } = req.body;
-        // validationResult function checks whether
-        // any occurs or not and return an object
-        const errors = validationResult(req);
+  // //------------------Get ToDo by ID Api-----------------//
+  // app.post(
+  //   `${BASE_URL}`,
+  //   [...getToDoByIDValidations],
+  //   async (req, res, next) => {
+  //     try {
+  //       const { id } = req.body;
+  //       // validationResult function checks whether
+  //       // any occurs or not and return an object
+  //       const errors = validationResult(req);
 
-        // If some error occurs, then this
-        // block of code will run
-        if (!errors.isEmpty()) {
-          return res.json(errors);
-        }
+  //       // If some error occurs, then this
+  //       // block of code will run
+  //       if (!errors.isEmpty()) {
+  //         return res.json(errors);
+  //       }
 
-        //--------------Calling getToDoByID method------------//
-        const { data } = await toDoService.getToDoByID(id);
-        return res.status(200).json({ data, message: "" });
-      } catch (err) {
-        next(err);
-      }
-    }
-  );
+  //       //--------------Calling getToDoByID method------------//
+  //       const { data } = await toDoService.getToDoByID(id);
+  //       return res.status(200).json({ data, message: "" });
+  //     } catch (err) {
+  //       next(err);
+  //     }
+  //   }
+  // );
 
   //------------------Update ToDo Api-----------------//
   app.put(`${BASE_URL}`, [...updateToDoValidations], async (req, res, next) => {
@@ -157,6 +159,71 @@ const todos = (app) => {
         next(err);
       }
     }
+  );
+
+  //------------------Create ToDo Api-----------------//
+  app.post(
+    `${BASE_URL}/create`,
+    // [...createToDoValidations],
+    asyncErrorHandler(async (req, res, next) => {
+      const { [TITLE]: title } = req.body;
+
+      const newToDo = new ToDoModel({
+        [TITLE]: title,
+      });
+      const toDoResult = await newToDo.save();
+      return res.status(201).json({
+        status: "success",
+        data: toDoResult,
+      });
+    })
+  );
+
+  //------------------Get ToDo by ID Api-----------------//
+  // app.post(
+  //   `${BASE_URL}`,
+  //   // [...getToDoByIDValidations],
+  //   asyncErrorHandler(async (req, res, next) => {
+  //     // try {
+  //     const { id } = req.body;
+  //     // validationResult function checks whether
+  //     // any occurs or not and return an object
+  //     // const errors = validationResult(req);
+
+  //     // If some error occurs, then this
+  //     // block of code will run
+  //     // if (!errors.isEmpty()) {
+  //     //   return res.json(errors);
+  //     // }
+
+  //     //--------------Calling getToDoByID method------------//
+  //     const { data } = await toDoService.getToDoByID(id);
+  //     return res.status(200).json({ data, message: "" });
+  //     // } catch (err) {
+  //     //   next(err);
+  //     // }
+  //   })
+  // );
+
+  //------------------Get ToDo by ID Api-----------------//
+  app.post(
+    `${BASE_URL}`,
+    // [...getToDoByIDValidations],
+    asyncErrorHandler(async (req, res, next) => {
+      const { id } = req.body;
+
+      const todo = await ToDoModel.findById(id);
+      if (!todo) {
+        const error = new CustomError(`ToDo with that ID is not found`, 404);
+        //always return
+        return next(error);
+      }
+
+      return res.status(200).json({
+        status: "success",
+        message: "",
+      });
+    })
   );
 };
 

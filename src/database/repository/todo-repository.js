@@ -4,6 +4,7 @@ import {
   BadRequestError,
   STATUS_CODES,
 } from "../../utils/app-errors.js";
+import { CustomError } from "../../utils/CustomError.js";
 
 //---------Dealing with data base operations----------//
 class ToDoRepository {
@@ -85,7 +86,14 @@ class ToDoRepository {
   //----------getToDo Method-------//
   async getToDo(id) {
     try {
-      return await ToDoModel.findById(id);
+      const todo = await ToDoModel.findById(id);
+      if (!todo) {
+        const error = new CustomError(`ToDo with that ID is not found`, 404);
+        //always return
+        return next(error);
+      }
+
+      return todo;
     } catch (err) {
       throw APIError(
         "API Error",
@@ -103,6 +111,11 @@ class ToDoRepository {
         { title: title },
         { new: true }
       );
+      if (!todo) {
+        const error = new CustomError(`ToDo with that ID is not found`, 404);
+        //always return
+        return next(error);
+      }
       return todo;
     } catch (err) {
       throw APIError(
@@ -121,6 +134,11 @@ class ToDoRepository {
         { isComplete: isComplete },
         { new: true }
       );
+      if (!todo) {
+        const error = new CustomError(`ToDo with that ID is not found`, 404);
+        //always return
+        return next(error);
+      }
       return todo;
     } catch (err) {
       throw APIError(
@@ -134,7 +152,13 @@ class ToDoRepository {
   //----------deleteToDo Method-------//
   async deleteToDo(id) {
     try {
-      return await ToDoModel.findByIdAndDelete(id);
+      const deletedTodo = await ToDoModel.findByIdAndDelete(id);
+      if (!deletedTodo) {
+        const error = new CustomError(`ToDo with that ID is not found`, 404);
+        //always return
+        return next(error);
+      }
+      return deletedTodo;
     } catch (err) {
       throw APIError(
         "API Error",
